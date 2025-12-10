@@ -1,0 +1,2343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#ff9900">
+    <title>Kachin Visions Empire</title>
+    
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    
+    <!-- CryptoJS for Encryption -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #050510, #0a0a1a, #1a0f0a);
+            color: #f0f8ff;
+            font-size: 12px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        /* Prevent text selection */
+        *:not(input):not(textarea) {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            padding-bottom: 60px;
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* Password Status Indicator */
+        .password-indicator {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            padding: 6px 10px;
+            border-radius: 15px;
+            font-size: 10px;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            backdrop-filter: blur(5px);
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .password-indicator.locked {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff3e3e;
+            border-color: rgba(255, 0, 0, 0.3);
+        }
+
+        /* Stories Menu */
+        .stories-menu-container {
+            position: fixed;
+            top: 15px;
+            left: 160px;
+            z-index: 1000;
+        }
+
+        .stories-toggle-btn {
+            background: rgba(255, 153, 0, 0.2);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            color: #ff9900;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .stories-toggle-btn:hover {
+            background: rgba(255, 153, 0, 0.3);
+        }
+
+        .stories-toggle-btn:active {
+            transform: scale(0.95);
+        }
+
+        .stories-menu {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            background: rgba(15, 20, 40, 0.95);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            min-width: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .stories-menu.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .story-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+
+        .story-item:hover {
+            background: rgba(255, 153, 0, 0.2);
+        }
+
+        .story-item:active {
+            transform: scale(0.95);
+        }
+
+        .story-item.active {
+            background: rgba(255, 153, 0, 0.3);
+            color: #ff9900;
+        }
+
+        /* Logo Container */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-top: 70px;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ff9900;
+            text-shadow: 0 0 10px rgba(255, 153, 0, 0.5);
+            margin-bottom: 5px;
+        }
+
+        .logo-sub {
+            font-size: 9px;
+            color: #8a93a7;
+        }
+
+        /* Compact Password Section */
+        .password-section-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto 20px;
+        }
+
+        .password-section {
+            background: rgba(15, 20, 40, 0.7);
+            backdrop-filter: blur(5px);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            padding: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: top center;
+            max-height: 40px;
+            overflow: hidden;
+        }
+
+        .password-section.expanded {
+            max-height: 200px;
+            padding: 15px;
+            background: rgba(15, 20, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-color: rgba(255, 153, 0, 0.4);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .password-section-title {
+            font-size: 11px;
+            color: #ff9900;
+            text-align: center;
+            margin-bottom: 8px;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .password-section.expanded .password-section-title {
+            font-size: 13px;
+            opacity: 1;
+            margin-bottom: 12px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            background: rgba(10, 10, 26, 0.8);
+            color: #f0f8ff;
+            font-size: 11px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            height: 0;
+            margin: 0;
+        }
+
+        .password-section.expanded .password-input {
+            opacity: 1;
+            height: auto;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+
+        .unlock-btn {
+            width: 100%;
+            padding: 6px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(255, 153, 0, 0.3);
+            color: rgba(255, 153, 0, 0.8);
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .unlock-btn:active {
+            transform: scale(0.98);
+        }
+
+        .password-section.expanded .unlock-btn {
+            opacity: 1;
+            height: auto;
+            padding: 8px;
+            background: #ff9900;
+            color: white;
+        }
+
+        .password-status {
+            font-size: 9px;
+            text-align: center;
+            margin-top: 6px;
+            color: #8a93a7;
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .password-section.expanded .password-status {
+            opacity: 1;
+            height: auto;
+            margin-top: 8px;
+        }
+
+        /* Video Section */
+        .video-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .video-section {
+                flex-direction: row;
+            }
+        }
+
+        /* Video Player Container */
+        .video-player-container {
+            flex: 2;
+            background: rgba(15, 20, 40, 0.9);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            aspect-ratio: 16/9;
+            position: relative;
+        }
+
+        .video-player {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .video-player video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            font-size: 18px;
+        }
+
+        .fullscreen-btn:active {
+            transform: scale(0.9);
+        }
+
+        .default-image {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .default-image img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 5px;
+        }
+
+        /* Video List Container */
+        .video-list-container {
+            flex: 1;
+            background: rgba(15, 20, 40, 0.9);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            max-height: 400px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .video-list-title {
+            font-size: 12px;
+            margin-bottom: 10px;
+            color: #ff9900;
+            text-align: center;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .video-list {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 5px;
+        }
+
+        .video-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .video-list::-webkit-scrollbar-thumb {
+            background: #ff9900;
+            border-radius: 2px;
+        }
+
+        /* Video Item Styles */
+        .video-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .video-item:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .video-item:active {
+            transform: scale(0.98);
+        }
+
+        /* Locked video - red color */
+        .video-item.locked {
+            background: rgba(255, 0, 0, 0.1);
+            border-left-color: #ff3e3e;
+            opacity: 0.7;
+        }
+
+        /* Unlocked video - bright green color */
+        .video-item.unlocked {
+            background: rgba(0, 255, 0, 0.15) !important;
+            border-left-color: #00ff00 !important;
+            border: 1px solid rgba(0, 255, 0, 0.3) !important;
+        }
+
+        .video-item.unlocked .video-name {
+            color: #00ff00 !important;
+            font-weight: bold;
+        }
+
+        .video-item.unlocked .video-meta {
+            color: #90ff90 !important;
+        }
+
+        .video-item.free {
+            background: rgba(0, 204, 136, 0.1);
+            border-left-color: #00cc88;
+        }
+
+        .video-item.playing {
+            background: rgba(255, 153, 0, 0.2);
+            border-left-color: #ff9900;
+        }
+
+        .video-item.downloaded {
+            background: rgba(255, 153, 0, 0.1);
+            border-left-color: #ff9900;
+        }
+
+        .video-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .video-name {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 3px;
+            color: #f0f8ff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-meta {
+            font-size: 9px;
+            color: #8a93a7;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .action-btn.play {
+            background: #ff9900;
+            color: white;
+        }
+
+        .action-btn.download {
+            background: #00cc88;
+            color: white;
+        }
+
+        .action-btn.offline {
+            background: #8a93a7;
+            color: white;
+        }
+
+        .action-btn.delete {
+            background: #ff3e3e;
+            color: white;
+        }
+
+        .free-badge {
+            background: #00cc88;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 8px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(15, 20, 40, 0.9);
+            color: #f0f8ff;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 153, 0, 0.2);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 153, 0, 0.2);
+        }
+
+        .nav-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            background: rgba(255, 62, 62, 0.2);
+            color: #ff3e3e;
+            border: 1px solid rgba(255, 62, 62, 0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 62, 62, 0.3);
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            padding: 6px 10px;
+            border-radius: 15px;
+            font-size: 9px;
+            background: rgba(0, 204, 136, 0.2);
+            color: #00cc88;
+            border: 1px solid rgba(0, 204, 136, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 1000;
+        }
+
+        .connection-status.offline {
+            background: rgba(255, 62, 62, 0.2);
+            color: #ff3e3e;
+            border-color: rgba(255, 62, 62, 0.3);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            max-width: 90%;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.3s ease;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            gap: 15px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 153, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #ff9900;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 4000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: #0a0a1a;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            max-width: 350px;
+            width: 100%;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        .modal-title {
+            font-size: 12px;
+            margin-bottom: 12px;
+            color: #ff9900;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            border: none;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-btn:active {
+            transform: scale(0.98);
+        }
+
+        .modal-btn.primary {
+            background: #ff9900;
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: rgba(255, 153, 0, 0.2);
+            color: #ff9900;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .modal-btn.danger {
+            background: #ff3e3e;
+            color: white;
+        }
+
+        /* Download Progress */
+        .download-progress {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            z-index: 1000;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 200px;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 10px;
+            text-align: center;
+            color: #f0f8ff;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #ff9900;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Cloudinary Video Preload Status */
+        .preload-status {
+            position: fixed;
+            top: 15px;
+            right: 60px;
+            background: rgba(0, 204, 136, 0.2);
+            color: #00cc88;
+            padding: 6px 10px;
+            border-radius: 15px;
+            font-size: 9px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 1000;
+            border: 1px solid rgba(0, 204, 136, 0.3);
+        }
+
+        /* Contact Links List */
+        .contact-list-container {
+            background: rgba(15, 20, 40, 0.9);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            max-height: 400px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { 
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes modalSlideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Password Status Indicator -->
+    <div class="password-indicator locked" id="passwordIndicator">
+        <i class="fas fa-lock"></i> <span>Locked</span>
+    </div>
+
+    <!-- Stories Menu -->
+    <div class="stories-menu-container">
+        <div class="stories-toggle-btn" id="storiesToggle">
+            <i class="fas fa-film"></i>
+        </div>
+        <div class="stories-menu" id="storiesMenu">
+            <div class="story-list" id="storyList"></div>
+        </div>
+    </div>
+
+    <!-- Cloudinary Preload Status -->
+    <div class="preload-status" id="preloadStatus" style="display: none;">
+        <i class="fas fa-bolt"></i> <span id="preloadText">Ready</span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText" style="font-size: 12px;">Loading...</div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Connection Status -->
+    <div class="connection-status" id="connectionStatus">
+        <i class="fas fa-wifi"></i> Online
+    </div>
+
+    <!-- Download Progress -->
+    <div class="download-progress" id="downloadProgress">
+        <div class="progress-text" id="progressText">Downloading...</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <!-- Main Screen -->
+    <div id="screen1" class="screen active">
+        <div class="container">
+            <!-- Back Button -->
+            <button class="back-btn" id="backButton" style="display: none;">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+
+            <!-- Logo -->
+            <div class="logo-container">
+                <div class="logo">Kachin Visions Empire</div>
+                <div class="logo-sub">High Performance Video Platform</div>
+            </div>
+
+            <!-- Compact Password Section -->
+            <div class="password-section-container">
+                <div class="password-section" id="passwordSection">
+                    <div class="password-section-title">
+                        <i class="fas fa-lock"></i> Secure Access
+                    </div>
+                    <input type="password" class="password-input" id="passwordInput" 
+                           placeholder="Enter access password" autocomplete="off">
+                    <button class="unlock-btn" id="unlockBtn">
+                        <i class="fas fa-unlock"></i> Unlock Videos
+                    </button>
+                    <div class="password-status" id="passwordStatus">
+                        Enter password to access videos
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Section -->
+            <div class="video-section">
+                <div class="video-player-container">
+                    <div class="video-player">
+                        <button class="fullscreen-btn" id="fullscreenBtn" style="display: none;">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <div class="default-image" id="defaultImage">
+                            <img src="https://res.cloudinary.com/zaumaran/image/upload/v1764932924/Kachin_Vision_Empire_For_Logo_zpkdbg.png" 
+                                 alt="Kachin Visions Empire" id="appImage" style="display: none;">
+                            <div style="text-align: center; color: #ff9900; padding: 20px;">
+                                <i class="fas fa-play-circle" style="font-size: 40px; margin-bottom: 10px;"></i>
+                                <div style="font-size: 12px;">Select a video to play</div>
+                            </div>
+                        </div>
+                        <video id="videoPlayer" controls playsinline 
+                               controlsList="nodownload noremoteplayback"
+                               style="display: none;"></video>
+                    </div>
+                </div>
+
+                <div class="video-list-container">
+                    <div class="video-list-title">
+                        <i class="fas fa-film"></i> Video Library
+                    </div>
+                    <div class="video-list" id="videoList"></div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="nav-buttons">
+                <button class="nav-btn" id="contactBtn">
+                    <i class="fas fa-link"></i> Contact Links
+                </button>
+                <button class="nav-btn" id="downloadedBtn">
+                    <i class="fas fa-download"></i> My Downloads
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Links Screen -->
+    <div id="screen2" class="screen">
+        <div class="container">
+            <button class="back-btn" id="backToMain">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+
+            <div class="logo-container">
+                <div class="logo">Contact Links</div>
+                <div class="logo-sub">Available Links</div>
+            </div>
+
+            <div class="contact-list-container">
+                <div class="video-list-title">
+                    <i class="fas fa-link"></i> Available Links
+                </div>
+                <div class="video-list" id="contactList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Downloaded Videos Screen -->
+    <div id="screen3" class="screen">
+        <div class="container">
+            <button class="back-btn" id="backToMainFromDownloaded">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+
+            <div class="logo-container">
+                <div class="logo">Downloaded Videos</div>
+                <div class="logo-sub">Available Offline</div>
+            </div>
+
+            <div class="video-list-container">
+                <div class="video-list-title">
+                    <i class="fas fa-download"></i> My Downloads
+                </div>
+                <div class="video-list" id="downloadedList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Password Modal -->
+    <div class="modal" id="videoPasswordModal">
+        <div class="modal-content">
+            <div class="modal-title">
+                <i class="fas fa-lock"></i> Video Password Required
+            </div>
+            <div style="margin-bottom: 15px; font-size: 11px; text-align: center;">
+                This video requires a password to access.
+            </div>
+            <input type="password" class="password-input" id="videoPassword" 
+                   placeholder="Enter video password" 
+                   style="margin-bottom: 10px; opacity: 1; height: auto; padding: 8px;">
+            <div id="videoPasswordStatus" style="font-size: 10px; text-align: center; margin: 10px 0; color: #ff3e3e; min-height: 14px;"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" id="submitVideoPassword">
+                    <i class="fas fa-unlock"></i> Unlock
+                </button>
+                <button class="modal-btn secondary" id="cancelVideoPassword">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Internet Modal -->
+    <div class="modal" id="noInternetModal">
+        <div class="modal-content">
+            <div class="modal-title">
+                <i class="fas fa-wifi-slash"></i> No Internet Connection
+            </div>
+            <div style="margin-bottom: 15px; font-size: 11px; text-align: center;">
+                You're offline. Downloaded videos are available for viewing.
+            </div>
+            <button class="modal-btn primary" id="continueOfflineBtn">
+                <i class="fas fa-play-circle"></i> Continue
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        const SECURITY = {
+            APP_ID: 'kachin_visions_empire_v1.0',
+            ENCRYPTION_KEY: 'KVESecure2024@VideoPlatform!EncryptionKey',
+            DEVICE_ID_KEY: 'kve_device_id',
+            STORAGE_PREFIX: 'kve_secure_',
+            CUSTOM_IMAGE_URL: 'https://res.cloudinary.com/zaumaran/image/upload/v1764932924/Kachin_Vision_Empire_For_Logo_zpkdbg.png'
+        };
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJGR8dXeawpg6RNpF1iUC7TD65RWm-oxE",
+            authDomain: "sun-day-video-production-298c8.firebaseapp.com",
+            projectId: "sun-day-video-production-298c8",
+            storageBucket: "sun-day-video-production-298c8.firebasestorage.app",
+            messagingSenderId: "927333523323",
+            appId: "1:927333523323:web:16375e95732c5acb4767de",
+            measurementId: "G-ZY2Y2Y749H"
+        };
+
+        // ==================== APP STATE ====================
+        let videos = [];
+        let stories = [];
+        let contactLinks = [];
+        let passwords = [];
+        let unlockedVideos = new Set();
+        let currentStory = null;
+        let isOnline = true;
+        let currentVideoToUnlock = null;
+        let deviceId = null;
+        let downloadedVideos = {};
+        let passwordExpandTimer = null;
+        let isPasswordExpanded = false;
+        let videoPreloadCache = new Map();
+        let preloadedVideos = new Set();
+        let videoPreloadQueue = [];
+        let isPreloading = false;
+
+        // ==================== DOM ELEMENTS ====================
+        const screens = document.querySelectorAll('.screen');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const toast = document.getElementById('toast');
+        const downloadProgress = document.getElementById('downloadProgress');
+        const progressText = document.getElementById('progressText');
+        const progressFill = document.getElementById('progressFill');
+        const preloadStatus = document.getElementById('preloadStatus');
+        const preloadText = document.getElementById('preloadText');
+        const passwordIndicator = document.getElementById('passwordIndicator');
+        
+        // Stories menu
+        const storiesToggle = document.getElementById('storiesToggle');
+        const storiesMenu = document.getElementById('storiesMenu');
+        const storyList = document.getElementById('storyList');
+        
+        // Password section
+        const passwordSection = document.getElementById('passwordSection');
+        const passwordInput = document.getElementById('passwordInput');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const passwordStatus = document.getElementById('passwordStatus');
+        
+        // Video elements
+        const videoPlayer = document.getElementById('videoPlayer');
+        const defaultImage = document.getElementById('defaultImage');
+        const appImage = document.getElementById('appImage');
+        const videoList = document.getElementById('videoList');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        
+        // Navigation
+        const contactBtn = document.getElementById('contactBtn');
+        const downloadedBtn = document.getElementById('downloadedBtn');
+        const backButton = document.getElementById('backButton');
+        const backToMain = document.getElementById('backToMain');
+        const backToMainFromDownloaded = document.getElementById('backToMainFromDownloaded');
+        
+        // Modals
+        const videoPasswordModal = document.getElementById('videoPasswordModal');
+        const videoPassword = document.getElementById('videoPassword');
+        const submitVideoPassword = document.getElementById('submitVideoPassword');
+        const cancelVideoPassword = document.getElementById('cancelVideoPassword');
+        const videoPasswordStatus = document.getElementById('videoPasswordStatus');
+        const noInternetModal = document.getElementById('noInternetModal');
+        const continueOfflineBtn = document.getElementById('continueOfflineBtn');
+        
+        // Lists
+        const contactList = document.getElementById('contactList');
+        const downloadedList = document.getElementById('downloadedList');
+
+        // ==================== INITIALIZATION ====================
+        async function initApp() {
+            showLoading('Initializing high performance platform...');
+            
+            try {
+                // Initialize Firebase
+                firebase.initializeApp(firebaseConfig);
+                
+                // Generate device ID
+                deviceId = generateDeviceId();
+                
+                // Load custom image
+                loadCustomImage();
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                // Check connection
+                updateConnectionStatus();
+                
+                // Load all data
+                await Promise.all([
+                    loadVideos(),
+                    loadPasswords(),
+                    loadContactLinks()
+                ]);
+                
+                // Load downloaded videos
+                loadDownloadedVideos();
+                
+                // Render UI
+                renderStoryList();
+                renderVideoList();
+                renderContactList();
+                renderDownloadedList();
+                
+                // Check remembered password
+                checkRememberedPassword();
+                
+                // Start preloading
+                startVideoPreloading();
+                
+                // Hide loading
+                setTimeout(() => {
+                    hideLoading();
+                    showToast('Platform ready', 'success');
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showToast('Initialization failed', 'error');
+                hideLoading();
+            }
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function generateDeviceId() {
+            let storedId = localStorage.getItem(SECURITY.DEVICE_ID_KEY);
+            if (!storedId) {
+                storedId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem(SECURITY.DEVICE_ID_KEY, storedId);
+            }
+            return storedId;
+        }
+
+        function loadCustomImage() {
+            appImage.onload = function() {
+                appImage.style.display = 'block';
+                defaultImage.querySelector('div').style.display = 'none';
+            };
+            appImage.onerror = function() {
+                appImage.style.display = 'none';
+                defaultImage.querySelector('div').style.display = 'block';
+            };
+            appImage.src = SECURITY.CUSTOM_IMAGE_URL;
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        function setupEventListeners() {
+            // Stories menu
+            storiesToggle.addEventListener('click', toggleStoriesMenu);
+            document.addEventListener('click', closeStoriesMenuOnClickOutside);
+            
+            // Password section
+            passwordSection.addEventListener('mouseenter', expandPasswordSection);
+            passwordSection.addEventListener('mouseleave', startPasswordShrinkTimer);
+            unlockBtn.addEventListener('click', unlockVideos);
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') unlockVideos();
+            });
+            
+            // Navigation
+            contactBtn.addEventListener('click', () => showScreen(2));
+            downloadedBtn.addEventListener('click', () => showScreen(3));
+            backButton.addEventListener('click', handleBackButton);
+            backToMain.addEventListener('click', () => showScreen(1));
+            backToMainFromDownloaded.addEventListener('click', () => showScreen(1));
+            
+            // Video player
+            fullscreenBtn.addEventListener('click', toggleFullScreen);
+            
+            // Video password modal
+            submitVideoPassword.addEventListener('click', unlockCurrentVideo);
+            cancelVideoPassword.addEventListener('click', closeVideoPasswordModal);
+            videoPassword.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') unlockCurrentVideo();
+            });
+            
+            // Close modal when clicking outside
+            videoPasswordModal.addEventListener('click', (e) => {
+                if (e.target === videoPasswordModal) {
+                    closeVideoPasswordModal();
+                }
+            });
+            
+            // Offline modal
+            continueOfflineBtn.addEventListener('click', () => {
+                noInternetModal.style.display = 'none';
+            });
+            
+            // Network events
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+            
+            // Video player security
+            videoPlayer.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Fullscreen change
+            document.addEventListener('fullscreenchange', handleFullScreenChange);
+            document.addEventListener('webkitfullscreenchange', handleFullScreenChange);
+            document.addEventListener('mozfullscreenchange', handleFullScreenChange);
+            document.addEventListener('MSFullscreenChange', handleFullScreenChange);
+        }
+
+        // ==================== STORIES MENU ====================
+        function toggleStoriesMenu(e) {
+            e.stopPropagation();
+            storiesMenu.classList.toggle('active');
+        }
+
+        function closeStoriesMenuOnClickOutside(e) {
+            if (!storiesToggle.contains(e.target) && !storiesMenu.contains(e.target)) {
+                storiesMenu.classList.remove('active');
+            }
+        }
+
+        // ==================== PASSWORD SECTION ====================
+        function expandPasswordSection() {
+            clearTimeout(passwordExpandTimer);
+            
+            if (!isPasswordExpanded) {
+                passwordSection.classList.add('expanded');
+                isPasswordExpanded = true;
+                
+                setTimeout(() => {
+                    passwordInput.focus();
+                }, 300);
+            }
+        }
+
+        function startPasswordShrinkTimer() {
+            if (isPasswordExpanded) {
+                clearTimeout(passwordExpandTimer);
+                passwordExpandTimer = setTimeout(shrinkPasswordSection, 6000);
+            }
+        }
+
+        function shrinkPasswordSection() {
+            passwordSection.classList.remove('expanded');
+            isPasswordExpanded = false;
+        }
+
+        // ==================== DATA LOADING ====================
+        async function loadVideos() {
+            try {
+                if (navigator.onLine) {
+                    const db = firebase.firestore();
+                    const snapshot = await db.collection('videos').get();
+                    videos = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    // Extract stories
+                    const storySet = new Set();
+                    videos.forEach(video => {
+                        if (video.storyName) {
+                            storySet.add(video.storyName);
+                        }
+                    });
+                    stories = Array.from(storySet).sort();
+                    
+                    // Cache for offline
+                    localStorage.setItem(SECURITY.STORAGE_PREFIX + 'videos', JSON.stringify(videos));
+                    localStorage.setItem(SECURITY.STORAGE_PREFIX + 'stories', JSON.stringify(stories));
+                    
+                    console.log(`${videos.length} videos loaded`);
+                } else {
+                    // Load from cache
+                    const cachedVideos = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'videos');
+                    const cachedStories = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'stories');
+                    
+                    if (cachedVideos) videos = JSON.parse(cachedVideos);
+                    if (cachedStories) stories = JSON.parse(cachedStories);
+                    
+                    showToast('Using cached data', 'info');
+                }
+            } catch (error) {
+                console.error('Error loading videos:', error);
+                
+                // Fallback to cache
+                const cachedVideos = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'videos');
+                const cachedStories = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'stories');
+                
+                if (cachedVideos) videos = JSON.parse(cachedVideos);
+                if (cachedStories) stories = JSON.parse(cachedStories);
+            }
+        }
+
+        async function loadPasswords() {
+            try {
+                if (navigator.onLine) {
+                    const db = firebase.firestore();
+                    const snapshot = await db.collection('passwords').get();
+                    passwords = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    localStorage.setItem(SECURITY.STORAGE_PREFIX + 'passwords', JSON.stringify(passwords));
+                } else {
+                    const cached = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'passwords');
+                    if (cached) passwords = JSON.parse(cached);
+                }
+            } catch (error) {
+                console.error('Error loading passwords:', error);
+                const cached = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'passwords');
+                if (cached) passwords = JSON.parse(cached);
+            }
+        }
+
+        async function loadContactLinks() {
+            try {
+                if (navigator.onLine) {
+                    const db = firebase.firestore();
+                    const snapshot = await db.collection('contactLinks').get();
+                    contactLinks = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    localStorage.setItem(SECURITY.STORAGE_PREFIX + 'contacts', JSON.stringify(contactLinks));
+                } else {
+                    const cached = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'contacts');
+                    if (cached) contactLinks = JSON.parse(cached);
+                }
+            } catch (error) {
+                console.error('Error loading contact links:', error);
+                const cached = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'contacts');
+                if (cached) contactLinks = JSON.parse(cached);
+            }
+        }
+
+        function loadDownloadedVideos() {
+            const saved = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'downloaded');
+            if (saved) {
+                downloadedVideos = JSON.parse(saved);
+            }
+        }
+
+        function saveDownloadedVideos() {
+            localStorage.setItem(SECURITY.STORAGE_PREFIX + 'downloaded', JSON.stringify(downloadedVideos));
+        }
+
+        // ==================== ENCRYPTION FUNCTIONS ====================
+        function encryptVideoData(videoData) {
+            try {
+                const dataToEncrypt = {
+                    ...videoData,
+                    _deviceId: deviceId,
+                    _appId: SECURITY.APP_ID,
+                    _timestamp: Date.now(),
+                    _expires: Date.now() + (30 * 24 * 60 * 60 * 1000)
+                };
+                
+                const key = CryptoJS.SHA256(SECURITY.ENCRYPTION_KEY + deviceId).toString();
+                const encrypted = CryptoJS.AES.encrypt(JSON.stringify(dataToEncrypt), key).toString();
+                return encrypted;
+            } catch (error) {
+                console.error('Encryption error:', error);
+                return null;
+            }
+        }
+
+        function decryptVideoData(encryptedData) {
+            try {
+                const key = CryptoJS.SHA256(SECURITY.ENCRYPTION_KEY + deviceId).toString();
+                const decrypted = CryptoJS.AES.decrypt(encryptedData, key);
+                const jsonData = decrypted.toString(CryptoJS.enc.Utf8);
+                
+                if (!jsonData) {
+                    throw new Error('Decryption failed');
+                }
+                
+                const data = JSON.parse(jsonData);
+                
+                // Verify device and app
+                if (data._deviceId !== deviceId || data._appId !== SECURITY.APP_ID) {
+                    throw new Error('Invalid video file');
+                }
+                
+                // Check expiration
+                if (data._expires && Date.now() > data._expires) {
+                    throw new Error('Video has expired');
+                }
+                
+                // Remove security metadata
+                delete data._deviceId;
+                delete data._appId;
+                delete data._timestamp;
+                delete data._expires;
+                
+                return data;
+            } catch (error) {
+                console.error('Decryption error:', error);
+                return null;
+            }
+        }
+
+        // ==================== RENDER FUNCTIONS ====================
+        function renderStoryList() {
+            storyList.innerHTML = '';
+            
+            // Add "All Stories" option
+            const allItem = document.createElement('div');
+            allItem.className = `story-item ${!currentStory ? 'active' : ''}`;
+            allItem.textContent = 'All Stories';
+            allItem.addEventListener('click', () => {
+                currentStory = null;
+                renderVideoList();
+                storiesMenu.classList.remove('active');
+            });
+            storyList.appendChild(allItem);
+            
+            // Add each story
+            stories.forEach(story => {
+                const storyItem = document.createElement('div');
+                storyItem.className = `story-item ${currentStory === story ? 'active' : ''}`;
+                storyItem.textContent = story;
+                storyItem.addEventListener('click', () => {
+                    currentStory = story;
+                    renderVideoList();
+                    storiesMenu.classList.remove('active');
+                });
+                storyList.appendChild(storyItem);
+            });
+        }
+
+        function renderVideoList() {
+            videoList.innerHTML = '';
+            
+            if (videos.length === 0) {
+                videoList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #8a93a7;">
+                        <i class="fas fa-film" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <div>No videos available</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let videosToShow = videos;
+            
+            // Filter by selected story
+            if (currentStory) {
+                videosToShow = videos.filter(v => v.storyName === currentStory);
+                backButton.style.display = 'flex';
+            } else {
+                backButton.style.display = 'none';
+            }
+            
+            // Sort videos
+            videosToShow.sort((a, b) => {
+                if (a.storyName && b.storyName) {
+                    return a.storyName.localeCompare(b.storyName);
+                }
+                return a.name.localeCompare(b.name);
+            });
+            
+            videosToShow.forEach(video => {
+                const isFree = video.passwordType === 'free';
+                const isUnlocked = isFree || unlockedVideos.has(video.id) || 
+                                 (video.storyName && unlockedVideos.has(video.storyName));
+                const isDownloaded = downloadedVideos[video.id];
+                const canDownload = video.downloadable === true;
+                const isPreloaded = preloadedVideos.has(video.id);
+                
+                const videoItem = document.createElement('div');
+                videoItem.className = `video-item ${!isUnlocked ? 'locked' : 'unlocked'} ${isFree ? 'free' : ''} ${isDownloaded ? 'downloaded' : ''}`;
+                
+                videoItem.innerHTML = `
+                    <div class="video-info">
+                        <div class="video-name">${video.name} ${isPreloaded ? '<i class="fas fa-bolt" style="color: #00ff00; margin-left: 5px; font-size: 10px;"></i>' : ''}</div>
+                        <div class="video-meta">
+                            ${video.type || 'Video'} ${video.storyName ? `• ${video.storyName}` : ''}
+                            ${isDownloaded ? '<span style="color: #ff9900; margin-left: 5px;"><i class="fas fa-check"></i> Downloaded</span>' : ''}
+                            ${canDownload && isUnlocked ? '<span style="color: #00cc88; margin-left: 5px;"><i class="fas fa-download"></i> Downloadable</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="video-actions">
+                        ${isFree ? '<span class="free-badge">FREE</span>' : ''}
+                        ${isDownloaded ? `
+                            <button class="action-btn play" data-action="play-downloaded" data-id="${video.id}">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        ` : ''}
+                        ${canDownload && isUnlocked && !isDownloaded ? `
+                            <button class="action-btn download" data-action="download" data-id="${video.id}">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        ` : ''}
+                        ${isDownloaded ? `
+                            <button class="action-btn delete" data-action="delete" data-id="${video.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                
+                // Add event listeners for action buttons
+                const actionButtons = videoItem.querySelectorAll('[data-action]');
+                actionButtons.forEach(btn => {
+                    const action = btn.dataset.action;
+                    const videoId = btn.dataset.id;
+                    
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        
+                        switch(action) {
+                            case 'play-downloaded':
+                                playDownloadedVideo(videoId);
+                                break;
+                            case 'download':
+                                downloadVideo(videoId);
+                                break;
+                            case 'delete':
+                                if (confirm('Delete this downloaded video?')) {
+                                    deleteDownloadedVideo(videoId);
+                                    renderVideoList();
+                                    renderDownloadedList();
+                                    showToast('Video deleted', 'success');
+                                }
+                                break;
+                        }
+                    });
+                });
+                
+                // Click on video item to play
+                videoItem.addEventListener('click', () => {
+                    if (!isUnlocked) {
+                        if (video.passwordType === 'password') {
+                            currentVideoToUnlock = video;
+                            showVideoPasswordModal();
+                        } else {
+                            showToast('Password required', 'error');
+                        }
+                    } else if (!isDownloaded) {
+                        playVideo(video);
+                    } else {
+                        playDownloadedVideo(video.id);
+                    }
+                });
+                
+                videoList.appendChild(videoItem);
+            });
+        }
+
+        function renderContactList() {
+            contactList.innerHTML = '';
+            
+            if (contactLinks.length === 0) {
+                contactList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #8a93a7;">
+                        <i class="fas fa-link" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <div>No contact links available</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            contactLinks.forEach(link => {
+                const linkItem = document.createElement('div');
+                linkItem.className = 'video-item';
+                
+                let icon = 'fa-link';
+                let color = '#ff9900';
+                
+                switch(link.type) {
+                    case 'facebook': icon = 'fa-facebook'; color = '#1877F2'; break;
+                    case 'telegram': icon = 'fa-telegram'; color = '#0088cc'; break;
+                    case 'viber': icon = 'fa-viber'; color = '#7360F2'; break;
+                }
+                
+                linkItem.innerHTML = `
+                    <div class="video-info">
+                        <div class="video-name">${link.name}</div>
+                        <div class="video-meta">${link.type.charAt(0).toUpperCase() + link.type.slice(1)}</div>
+                    </div>
+                    <a href="${link.url}" target="_blank" class="action-btn play" 
+                       style="text-decoration: none; background: ${color};">
+                        <i class="fab ${icon}"></i>
+                    </a>
+                `;
+                
+                contactList.appendChild(linkItem);
+            });
+        }
+
+        function renderDownloadedList() {
+            downloadedList.innerHTML = '';
+            
+            const videoIds = Object.keys(downloadedVideos);
+            
+            if (videoIds.length === 0) {
+                downloadedList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #8a93a7;">
+                        <i class="fas fa-download" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <div>No downloaded videos</div>
+                        <div style="font-size: 10px; margin-top: 5px;">
+                            Download videos when online to watch offline
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            videoIds.forEach(videoId => {
+                const videoInfo = downloadedVideos[videoId];
+                
+                const videoItem = document.createElement('div');
+                videoItem.className = 'video-item downloaded';
+                
+                videoItem.innerHTML = `
+                    <div class="video-info">
+                        <div class="video-name">${videoInfo.name}</div>
+                        <div class="video-meta">
+                            ${videoInfo.type} ${videoInfo.story ? `• ${videoInfo.story}` : ''}
+                            <div style="font-size: 9px; color: #8a93a7; margin-top: 2px;">
+                                <i class="fas fa-calendar"></i> Downloaded: ${new Date(videoInfo.downloadDate).toLocaleDateString()}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-actions">
+                        <button class="action-btn play" data-action="play" data-id="${videoId}">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="action-btn delete" data-action="delete" data-id="${videoId}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Add event listeners
+                videoItem.querySelector('[data-action="play"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    playDownloadedVideo(videoId);
+                });
+                
+                videoItem.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (confirm('Delete this downloaded video?')) {
+                        deleteDownloadedVideo(videoId);
+                        renderDownloadedList();
+                        renderVideoList();
+                        showToast('Video deleted', 'success');
+                    }
+                });
+                
+                // Click on item to play
+                videoItem.addEventListener('click', (e) => {
+                    if (!e.target.closest('.video-actions')) {
+                        playDownloadedVideo(videoId);
+                    }
+                });
+                
+                downloadedList.appendChild(videoItem);
+            });
+        }
+
+        // ==================== VIDEO FUNCTIONS ====================
+        function playVideo(video) {
+            try {
+                showLoading('Loading video...');
+                
+                defaultImage.style.display = 'none';
+                videoPlayer.style.display = 'block';
+                fullscreenBtn.style.display = 'block';
+                videoPlayer.src = video.url;
+                
+                // Add security attributes
+                videoPlayer.setAttribute('controlsList', 'nodownload noremoteplayback');
+                videoPlayer.setAttribute('disablepictureinpicture', 'true');
+                
+                videoPlayer.oncanplay = () => {
+                    hideLoading();
+                    videoPlayer.play().catch(e => {
+                        console.log('Auto-play prevented:', e);
+                    });
+                    
+                    // Highlight playing video
+                    document.querySelectorAll('.video-item').forEach(item => {
+                        item.classList.remove('playing');
+                    });
+                    
+                    const currentItem = Array.from(document.querySelectorAll('.video-item')).find(item => {
+                        const nameDiv = item.querySelector('.video-name');
+                        return nameDiv && nameDiv.textContent.includes(video.name);
+                    });
+                    
+                    if (currentItem) {
+                        currentItem.classList.add('playing');
+                    }
+                };
+                
+                videoPlayer.onerror = () => {
+                    hideLoading();
+                    showToast('Error loading video', 'error');
+                    defaultImage.style.display = 'flex';
+                    videoPlayer.style.display = 'none';
+                    fullscreenBtn.style.display = 'none';
+                };
+                
+                // Cache this video for future
+                if (!preloadedVideos.has(video.id)) {
+                    preloadVideo(video.url);
+                    preloadedVideos.add(video.id);
+                }
+                
+            } catch (error) {
+                hideLoading();
+                showToast('Error playing video', 'error');
+                console.error('Play video error:', error);
+            }
+        }
+
+        async function playDownloadedVideo(videoId) {
+            try {
+                showLoading('Loading downloaded video...');
+                
+                const videoData = downloadedVideos[videoId];
+                if (!videoData) {
+                    throw new Error('Video not found');
+                }
+                
+                // Decrypt video data
+                const decryptedData = decryptVideoData(videoData.encryptedData);
+                if (!decryptedData) {
+                    throw new Error('Failed to decrypt video');
+                }
+                
+                defaultImage.style.display = 'none';
+                videoPlayer.style.display = 'block';
+                fullscreenBtn.style.display = 'block';
+                videoPlayer.src = decryptedData.url;
+                
+                // Add security attributes
+                videoPlayer.setAttribute('controlsList', 'nodownload noremoteplayback');
+                videoPlayer.setAttribute('disablepictureinpicture', 'true');
+                
+                videoPlayer.oncanplay = () => {
+                    hideLoading();
+                    videoPlayer.play().catch(e => {
+                        console.log('Auto-play prevented:', e);
+                    });
+                };
+                
+                videoPlayer.onerror = () => {
+                    hideLoading();
+                    showToast('Error playing downloaded video', 'error');
+                    defaultImage.style.display = 'flex';
+                    videoPlayer.style.display = 'none';
+                    fullscreenBtn.style.display = 'none';
+                };
+                
+            } catch (error) {
+                hideLoading();
+                showToast('Cannot play downloaded video', 'error');
+                console.error('Play downloaded error:', error);
+            }
+        }
+
+        // ==================== VIDEO PRELOADING ====================
+        function preloadVideo(url) {
+            if (!videoPreloadCache.has(url)) {
+                const video = document.createElement('video');
+                video.preload = 'auto';
+                video.style.display = 'none';
+                video.src = url;
+                video.load();
+                videoPreloadCache.set(url, video);
+                return video;
+            }
+            return videoPreloadCache.get(url);
+        }
+
+        function startVideoPreloading() {
+            if (!videos.length) return;
+            
+            // Filter Cloudinary videos
+            const cloudinaryVideos = videos.filter(video => 
+                video.url && video.url.includes('cloudinary.com') && 
+                (video.passwordType === 'free' || unlockedVideos.has(video.id))
+            );
+            
+            if (cloudinaryVideos.length === 0) {
+                preloadText.textContent = 'No videos to preload';
+                setTimeout(() => {
+                    preloadStatus.style.display = 'none';
+                }, 2000);
+                return;
+            }
+            
+            preloadStatus.style.display = 'flex';
+            preloadText.textContent = `Preloading ${cloudinaryVideos.length} videos...`;
+            
+            // Create preload queue
+            videoPreloadQueue = [...cloudinaryVideos];
+            
+            // Start preloading
+            preloadNextVideo();
+        }
+
+        function preloadNextVideo() {
+            if (videoPreloadQueue.length === 0) {
+                preloadText.textContent = 'All videos preloaded';
+                preloadStatus.style.background = 'rgba(0, 255, 0, 0.2)';
+                preloadStatus.style.borderColor = 'rgba(0, 255, 0, 0.3)';
+                preloadStatus.style.color = '#00ff00';
+                
+                setTimeout(() => {
+                    preloadStatus.style.display = 'none';
+                }, 3000);
+                return;
+            }
+            
+            const video = videoPreloadQueue.shift();
+            
+            if (!preloadedVideos.has(video.id)) {
+                preloadVideo(video.url);
+                preloadedVideos.add(video.id);
+                
+                // Update preload status
+                const remaining = videoPreloadQueue.length;
+                const total = remaining + preloadedVideos.size;
+                const percent = Math.round((preloadedVideos.size / total) * 100);
+                preloadText.textContent = `Preloaded ${percent}%`;
+                
+                // Continue preloading
+                setTimeout(preloadNextVideo, 300);
+            } else {
+                preloadNextVideo();
+            }
+        }
+
+        // ==================== DOWNLOAD FUNCTIONS ====================
+        async function downloadVideo(videoId) {
+            try {
+                const video = videos.find(v => v.id === videoId);
+                if (!video) {
+                    throw new Error('Video not found');
+                }
+                
+                if (video.downloadable !== true) {
+                    showToast('This video cannot be downloaded', 'error');
+                    return;
+                }
+                
+                if (!navigator.onLine) {
+                    showToast('Need internet connection to download', 'error');
+                    return;
+                }
+                
+                showDownloadProgress(`Downloading: ${video.name}`, 0);
+                
+                // Fetch video data
+                const response = await fetch(video.url);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch video');
+                }
+                
+                const contentLength = response.headers.get('content-length');
+                const totalBytes = contentLength ? parseInt(contentLength) : 0;
+                let loadedBytes = 0;
+                
+                // Read stream with progress
+                const reader = response.body.getReader();
+                const chunks = [];
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    chunks.push(value);
+                    loadedBytes += value.length;
+                    
+                    // Update progress
+                    if (totalBytes > 0) {
+                        const progress = Math.round((loadedBytes / totalBytes) * 100);
+                        updateDownloadProgress(progress);
+                    }
+                }
+                
+                // Combine chunks
+                const blob = new Blob(chunks);
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // Prepare video data for encryption
+                const videoData = {
+                    ...video,
+                    url: blobUrl,
+                    blobSize: blob.size,
+                    downloadDate: Date.now()
+                };
+                
+                // Encrypt and save
+                const encryptedData = encryptVideoData(videoData);
+                if (!encryptedData) {
+                    throw new Error('Encryption failed');
+                }
+                
+                downloadedVideos[videoId] = {
+                    encryptedData,
+                    name: video.name,
+                    type: video.type,
+                    story: video.storyName,
+                    downloadDate: Date.now(),
+                    size: blob.size
+                };
+                
+                saveDownloadedVideos();
+                hideDownloadProgress();
+                
+                renderVideoList();
+                renderDownloadedList();
+                
+                showToast('Video downloaded successfully', 'success');
+                
+                // Store blob URL for later use
+                localStorage.setItem(SECURITY.STORAGE_PREFIX + 'blob_' + videoId, blobUrl);
+                
+            } catch (error) {
+                hideDownloadProgress();
+                showToast('Download failed', 'error');
+                console.error('Download error:', error);
+            }
+        }
+
+        function deleteDownloadedVideo(videoId) {
+            if (downloadedVideos[videoId]) {
+                // Revoke blob URL if exists
+                const blobUrl = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'blob_' + videoId);
+                if (blobUrl) {
+                    URL.revokeObjectURL(blobUrl);
+                    localStorage.removeItem(SECURITY.STORAGE_PREFIX + 'blob_' + videoId);
+                }
+                
+                delete downloadedVideos[videoId];
+                saveDownloadedVideos();
+            }
+        }
+
+        // ==================== PASSWORD FUNCTIONS ====================
+        function unlockVideos() {
+            const password = passwordInput.value.trim();
+            
+            if (!password) {
+                showToast('Enter password', 'error');
+                return;
+            }
+            
+            // Check for matching password
+            const matchingPassword = passwords.find(p => p.password === password);
+            
+            if (matchingPassword) {
+                if (matchingPassword.storyName) {
+                    unlockedVideos.add(matchingPassword.storyName);
+                    showToast(`Unlocked: ${matchingPassword.storyName}`, 'success');
+                } else {
+                    videos.forEach(video => {
+                        if (video.passwordType === 'password') {
+                            unlockedVideos.add(video.id);
+                        }
+                    });
+                    showToast('All videos unlocked', 'success');
+                }
+                
+                // Remember password for 24 hours
+                localStorage.setItem(SECURITY.STORAGE_PREFIX + 'remembered_password', JSON.stringify({
+                    password,
+                    timestamp: Date.now(),
+                    expires: Date.now() + (24 * 60 * 60 * 1000)
+                }));
+                
+                // Update password indicator
+                updatePasswordIndicator(true, matchingPassword.storyName || 'All Videos');
+                
+                renderVideoList();
+                passwordInput.value = '';
+                passwordStatus.textContent = '✓ Access granted';
+                passwordStatus.style.color = '#00ff00';
+                
+                // Auto-shrink after unlock
+                startPasswordShrinkTimer();
+                
+                // Start preloading newly unlocked videos
+                startVideoPreloading();
+                
+            } else {
+                showToast('Invalid password', 'error');
+                passwordStatus.textContent = '✗ Invalid password';
+                passwordStatus.style.color = '#ff3e3e';
+            }
+        }
+
+        function unlockCurrentVideo() {
+            const password = videoPassword.value.trim();
+            
+            if (!password) {
+                videoPasswordStatus.textContent = 'Enter password';
+                videoPasswordStatus.style.color = '#ff3e3e';
+                return;
+            }
+            
+            if (!currentVideoToUnlock) {
+                closeVideoPasswordModal();
+                return;
+            }
+            
+            const matchingPassword = passwords.find(p => 
+                p.password === password && 
+                (p.storyName === currentVideoToUnlock.storyName || !p.storyName)
+            );
+            
+            if (matchingPassword) {
+                unlockedVideos.add(currentVideoToUnlock.id);
+                closeVideoPasswordModal();
+                playVideo(currentVideoToUnlock);
+                renderVideoList();
+                showToast('Video unlocked', 'success');
+                
+                // Update password indicator
+                updatePasswordIndicator(true, currentVideoToUnlock.storyName || currentVideoToUnlock.name);
+                
+                // Preload this video
+                if (!preloadedVideos.has(currentVideoToUnlock.id)) {
+                    preloadVideo(currentVideoToUnlock.url);
+                    preloadedVideos.add(currentVideoToUnlock.id);
+                }
+            } else {
+                videoPasswordStatus.textContent = 'Invalid password for this video';
+                videoPasswordStatus.style.color = '#ff3e3e';
+                videoPassword.value = '';
+                videoPassword.focus();
+            }
+        }
+
+        function updatePasswordIndicator(isUnlocked, name = '') {
+            if (isUnlocked) {
+                passwordIndicator.className = 'password-indicator';
+                passwordIndicator.innerHTML = `<i class="fas fa-unlock"></i> <span>${name || 'Unlocked'}</span>`;
+            } else {
+                passwordIndicator.className = 'password-indicator locked';
+                passwordIndicator.innerHTML = `<i class="fas fa-lock"></i> <span>Locked</span>`;
+            }
+        }
+
+        function checkRememberedPassword() {
+            const remembered = localStorage.getItem(SECURITY.STORAGE_PREFIX + 'remembered_password');
+            if (remembered) {
+                try {
+                    const data = JSON.parse(remembered);
+                    if (data.expires > Date.now()) {
+                        passwordInput.value = data.password;
+                        setTimeout(() => {
+                            unlockVideos();
+                        }, 1000);
+                    } else {
+                        localStorage.removeItem(SECURITY.STORAGE_PREFIX + 'remembered_password');
+                    }
+                } catch (e) {
+                    localStorage.removeItem(SECURITY.STORAGE_PREFIX + 'remembered_password');
+                }
+            }
+        }
+
+        // ==================== MODAL FUNCTIONS ====================
+        function showVideoPasswordModal() {
+            videoPasswordModal.style.display = 'flex';
+            videoPassword.value = '';
+            videoPasswordStatus.textContent = '';
+            videoPassword.focus();
+        }
+
+        function closeVideoPasswordModal() {
+            videoPasswordModal.style.display = 'none';
+            videoPassword.value = '';
+            videoPasswordStatus.textContent = '';
+            currentVideoToUnlock = null;
+        }
+
+        // ==================== SCREEN NAVIGATION ====================
+        function showScreen(screenNumber) {
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            document.getElementById(`screen${screenNumber}`).classList.add('active');
+            
+            // Pause video when switching screens
+            if (!videoPlayer.paused) {
+                videoPlayer.pause();
+            }
+            
+            // Hide modals when switching screens
+            videoPasswordModal.style.display = 'none';
+            noInternetModal.style.display = 'none';
+            
+            // Hide fullscreen button
+            fullscreenBtn.style.display = 'none';
+        }
+
+        function handleBackButton() {
+            if (currentStory) {
+                currentStory = null;
+                renderVideoList();
+            }
+        }
+
+        // ==================== FULL SCREEN FUNCTIONS ====================
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                if (videoPlayer.requestFullscreen) {
+                    videoPlayer.requestFullscreen();
+                } else if (videoPlayer.webkitRequestFullscreen) {
+                    videoPlayer.webkitRequestFullscreen();
+                } else if (videoPlayer.mozRequestFullScreen) {
+                    videoPlayer.mozRequestFullScreen();
+                } else if (videoPlayer.msRequestFullscreen) {
+                    videoPlayer.msRequestFullscreen();
+                }
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+        }
+
+        function handleFullScreenChange() {
+            if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+            }
+        }
+
+        // ==================== NETWORK FUNCTIONS ====================
+        function updateConnectionStatus() {
+            isOnline = navigator.onLine;
+            
+            if (isOnline) {
+                connectionStatus.className = 'connection-status';
+                connectionStatus.innerHTML = '<i class="fas fa-wifi"></i> Online';
+                
+                // Start preloading when coming back online
+                if (preloadedVideos.size === 0 && videos.length > 0) {
+                    startVideoPreloading();
+                }
+            } else {
+                connectionStatus.className = 'connection-status offline';
+                connectionStatus.innerHTML = '<i class="fas fa-wifi-slash"></i> Offline';
+                
+                if (Object.keys(downloadedVideos).length === 0) {
+                    setTimeout(() => {
+                        noInternetModal.style.display = 'flex';
+                    }, 1000);
+                }
+            }
+        }
+
+        // ==================== UI FEEDBACK FUNCTIONS ====================
+        function showToast(message, type = 'info') {
+            const icon = type === 'success' ? 'fa-check-circle' :
+                        type === 'error' ? 'fa-exclamation-circle' :
+                        'fa-info-circle';
+            
+            const color = type === 'success' ? '#00ff00' :
+                         type === 'error' ? '#ff3e3e' : '#ff9900';
+            
+            toast.innerHTML = `<i class="fas ${icon}" style="color: ${color};"></i> ${message}`;
+            toast.style.display = 'flex';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function showLoading(text = 'Loading...') {
+            loadingText.textContent = text;
+            loadingOverlay.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+
+        function showDownloadProgress(text, progress) {
+            progressText.textContent = text;
+            progressFill.style.width = `${progress}%`;
+            downloadProgress.style.display = 'flex';
+        }
+
+        function updateDownloadProgress(progress) {
+            progressFill.style.width = `${progress}%`;
+        }
+
+        function hideDownloadProgress() {
+            downloadProgress.style.display = 'none';
+            progressFill.style.width = '0%';
+        }
+
+        // ==================== INITIALIZE APP ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            
+            // Prevent pull-to-refresh on mobile
+            document.body.style.overscrollBehavior = 'none';
+            
+            // Prevent zoom on iOS
+            document.addEventListener('touchmove', function(e) {
+                if (e.scale !== 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        });
+
+        // Handle app visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && !videoPlayer.paused) {
+                videoPlayer.pause();
+            }
+        });
+    </script>
+</body>
+</html>
