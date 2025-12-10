@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#ff9900">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="icons/icon-72x72.png">
+    
+    <title>Kachin Visions Empire</title>
+    
+    <!-- External Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Password Status Indicator -->
+    <div class="password-indicator locked" id="passwordIndicator">
+        <i class="fas fa-lock"></i> <span>Locked</span>
+    </div>
+
+    <!-- Stories Menu -->
+    <div class="stories-menu-container">
+        <div class="stories-toggle-btn" id="storiesToggle">
+            <i class="fas fa-film"></i>
+        </div>
+        <div class="stories-menu" id="storiesMenu">
+            <div class="story-list" id="storyList"></div>
+        </div>
+    </div>
+
+    <!-- Cloudinary Preload Status -->
+    <div class="preload-status" id="preloadStatus" style="display: none;">
+        <i class="fas fa-bolt"></i> <span id="preloadText">Ready</span>
+    </div>
+
+    <!-- Install PWA Prompt -->
+    <div class="install-prompt" id="installPrompt" style="display: none;">
+        <div class="install-content">
+            <i class="fas fa-download"></i>
+            <div class="install-text">Install Kachin Visions Empire App</div>
+            <div class="install-buttons">
+                <button class="install-btn" id="installBtn">Install</button>
+                <button class="install-cancel" id="installCancel">Later</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div id="loadingText" style="font-size: 12px;">Loading...</div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Connection Status -->
+    <div class="connection-status" id="connectionStatus">
+        <i class="fas fa-wifi"></i> Online
+    </div>
+
+    <!-- Download Progress -->
+    <div class="download-progress" id="downloadProgress">
+        <div class="progress-text" id="progressText">Downloading...</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <!-- Main Screen -->
+    <div id="screen1" class="screen active">
+        <div class="container">
+            <!-- Back Button -->
+            <button class="back-btn" id="backButton" style="display: none;">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+
+            <!-- Logo -->
+            <div class="logo-container">
+                <div class="logo">Kachin Visions Empire</div>
+                <div class="logo-sub">High Performance Video Platform</div>
+                <div class="install-hint" id="installHint" style="display: none;">
+                    <i class="fas fa-mobile-alt"></i> Tap <i class="fas fa-share"></i> then "Add to Home Screen"
+                </div>
+            </div>
+
+            <!-- Compact Password Section -->
+            <div class="password-section-container">
+                <div class="password-section" id="passwordSection">
+                    <div class="password-section-title">
+                        <i class="fas fa-lock"></i> Secure Access
+                    </div>
+                    <input type="password" class="password-input" id="passwordInput" 
+                           placeholder="Enter access password" autocomplete="off">
+                    <button class="unlock-btn" id="unlockBtn">
+                        <i class="fas fa-unlock"></i> Unlock Videos
+                    </button>
+                    <div class="password-status" id="passwordStatus">
+                        Enter password to access videos
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Section -->
+            <div class="video-section">
+                <div class="video-player-container">
+                    <div class="video-player">
+                        <button class="fullscreen-btn" id="fullscreenBtn" style="display: none;">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <div class="default-image" id="defaultImage">
+                            <img src="https://res.cloudinary.com/zaumaran/image/upload/v1764932924/Kachin_Vision_Empire_For_Logo_zpkdbg.png" 
+                                 alt="Kachin Visions Empire" id="appImage" style="display: none;">
+                            <div style="text-align: center; color: #ff9900; padding: 20px;">
+                                <i class="fas fa-play-circle" style="font-size: 40px; margin-bottom: 10px;"></i>
+                                <div style="font-size: 12px;">Select a video to play</div>
+                            </div>
+                        </div>
+                        <video id="videoPlayer" controls playsinline 
+                               controlsList="nodownload noremoteplayback"
+                               style="display: none;"></video>
+                    </div>
+                </div>
+
+                <div class="video-list-container">
+                    <div class="video-list-title">
+                        <i class="fas fa-film"></i> Video Library
+                    </div>
+                    <div class="video-list" id="videoList"></div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="nav-buttons">
+                <button class="nav-btn" id="contactBtn">
+                    <i class="fas fa-link"></i> Contact Links
+                </button>
+                <button class="nav-btn" id="downloadedBtn">
+                    <i class="fas fa-download"></i> My Downloads
+                </button>
+                <button class="nav-btn" id="installAppBtn" style="display: none;">
+                    <i class="fas fa-download"></i> Install App
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Links Screen -->
+    <div id="screen2" class="screen">
+        <div class="container">
+            <button class="back-btn" id="backToMain">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+
+            <div class="logo-container">
+                <div class="logo">Contact Links</div>
+                <div class="logo-sub">Available Links</div>
+            </div>
+
+            <div class="contact-list-container">
+                <div class="video-list-title">
+                    <i class="fas fa-link"></i> Available Links
+                </div>
+                <div class="video-list" id="contactList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Downloaded Videos Screen -->
+    <div id="screen3" class="screen">
+        <div class="container">
+            <button class="back-btn" id="backToMainFromDownloaded">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+
+            <div class="logo-container">
+                <div class="logo">Downloaded Videos</div>
+                <div class="logo-sub">Available Offline</div>
+            </div>
+
+            <div class="video-list-container">
+                <div class="video-list-title">
+                    <i class="fas fa-download"></i> My Downloads
+                </div>
+                <div class="video-list" id="downloadedList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Password Modal -->
+    <div class="modal" id="videoPasswordModal">
+        <div class="modal-content">
+            <div class="modal-title">
+                <i class="fas fa-lock"></i> Video Password Required
+            </div>
+            <div style="margin-bottom: 15px; font-size: 11px; text-align: center;">
+                This video requires a password to access.
+            </div>
+            <input type="password" class="password-input" id="videoPassword" 
+                   placeholder="Enter video password" 
+                   style="margin-bottom: 10px; opacity: 1; height: auto; padding: 8px;">
+            <div id="videoPasswordStatus" style="font-size: 10px; text-align: center; margin: 10px 0; color: #ff3e3e; min-height: 14px;"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" id="submitVideoPassword">
+                    <i class="fas fa-unlock"></i> Unlock
+                </button>
+                <button class="modal-btn secondary" id="cancelVideoPassword">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Internet Modal -->
+    <div class="modal" id="noInternetModal">
+        <div class="modal-content">
+            <div class="modal-title">
+                <i class="fas fa-wifi-slash"></i> No Internet Connection
+            </div>
+            <div style="margin-bottom: 15px; font-size: 11px; text-align: center;">
+                You're offline. Downloaded videos are available for viewing.
+            </div>
+            <button class="modal-btn primary" id="continueOfflineBtn">
+                <i class="fas fa-play-circle"></i> Continue
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Main Application Script -->
+    <script src="app.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js').then(
+                    function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    },
+                    function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    }
+                );
+            });
+        }
+    </script>
+</body>
+</html>
